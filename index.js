@@ -1,5 +1,4 @@
 const express = require('express')
-const bodyParser = require('body-parser')
 const app = express()
 const port = 3000
 const bodyParser = require('body-parser')
@@ -55,18 +54,20 @@ app.use(authenticationMiddleware)
 const perPage = 2
 
 app.get('/', (req, res) => {
-  const page = req.query.page
-  const firstEl = perPage * (page - 1);
-  const lastEl = perPage * (page - 1) + perPage
+  const firstEl = req.query.first || 0
+  const offset = req.query.offset || 10
+  const lastEl = firstEl + offset
+  const filterName = req.query.name
+  const filteredUsers = users.filter(user => user.name === req.query.name)
 
-  res.json(users.slice(firstEl, lastEl))
+  res.json(filteredUsers.slice(firstEl, lastEl))
 })
 
 app.get('/:id', (req, res) => {
   res.json(users.find(e => e.id === Number(req.params.id)))
 })
 
-app.post('/', isAdminMiddleware,(req, res) => {
+app.post('/', isAdminMiddleware, (req, res) => {
   console.log(req.userId)
   users.push(req.body)
   if (!req.body.name) {
@@ -87,22 +88,3 @@ app.put('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Example app listening at http://localhost:${port}`)
 })
-
-async function filesWork() {
-  fs.readFile('1', (err, file1) => {
-    fs.readFile('2', (err, file2) => {
-      fs.readFile('3', (err, file3) => {
-        fs.readFile('4', (err, file4) => {
-          fs.readFile('5', (err, file5) => {
-            // Работа с файлам
-          })
-        })
-      })
-    })
-  })
-  const file1 = await fs.readFile('1');
-  const file2 = await fs.readFile('2');
-  const file3 = await fs.readFile('3');
-  const file4 = await fs.readFile('4');
-  const file5 = await fs.readFile('5');
-}
