@@ -3,6 +3,7 @@ const app = express()
 const port = 3000
 const bodyParser = require('body-parser')
 const axios = require('axios')
+const fs = require('fs')
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -54,7 +55,7 @@ const isAdminMiddleware = (req, res, next) => {
 app.use(authenticationMiddleware)
 const perPage = 2
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
   const firstEl = req.query.first || 0
   const offset = req.query.offset || 10
   const lastEl = firstEl + offset
@@ -62,14 +63,26 @@ app.get('/', (req, res) => {
     .then(resp => {
       const users = resp.data
       const filteredUsers = req.query.name ? users.filter(user => user.name === req.query.name) : users
+      fs.readFile('./usertag', 'utf8', (err, usertag) => {
+        res.json(filteredUsers.slice(firstEl, lastEl).map(user => {
+          return {
+            ...user,
+            name: user.name + usertag
+          }
+        }))
+      })
 
-      res.json(filteredUsers.slice(firstEl, lastEl).map(user => {
-        return {
-          ...user,
-          name: user.name + 'asd'
-        }
-      }))
     })
+})
+app.post('/usertag', (req,res) => {
+  fs.readFile('./usertag', "utf8", (err, oldData) => {
+    fs.writeFile('./usertag', req.body.data, 'utf8', (err, result) => {
+      res.send({
+        oldData,
+        newData: req.body.data
+      })
+    })
+  })
 })
 
 app.get('/:id', (req, res) => {
