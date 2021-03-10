@@ -2,6 +2,7 @@ const express = require('express')
 const app = express()
 const port = 3000
 const bodyParser = require('body-parser')
+const axios = require('axios')
 
 // parse application/x-www-form-urlencoded
 app.use(bodyParser.urlencoded({ extended: false }))
@@ -57,10 +58,18 @@ app.get('/', (req, res) => {
   const firstEl = req.query.first || 0
   const offset = req.query.offset || 10
   const lastEl = firstEl + offset
-  const filterName = req.query.name
-  const filteredUsers = users.filter(user => user.name === req.query.name)
+  axios.get('https://jsonplaceholder.typicode.com/users')
+    .then(resp => {
+      const users = resp.data
+      const filteredUsers = req.query.name ? users.filter(user => user.name === req.query.name) : users
 
-  res.json(filteredUsers.slice(firstEl, lastEl))
+      res.json(filteredUsers.slice(firstEl, lastEl).map(user => {
+        return {
+          ...user,
+          name: user.name + 'asd'
+        }
+      }))
+    })
 })
 
 app.get('/:id', (req, res) => {
